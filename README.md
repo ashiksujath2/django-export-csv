@@ -23,11 +23,15 @@ export_data = {
 	'queryset': User.objects.all(),
 	'filter_by': 'is_active',
 	'object_id': 1,
-    'export_data':  {
-        'username': 'User name',
-        'get_full_name': 'Full name',
-        'get_profile.some_profile_var': 'Some data',
-        }
+    'export_data':  [
+        ('username': 'User name'),
+        ('get_full_name': 'Full name'),
+        ('get_profile.some_profile_var': 'Some data'),
+        ('Yes', 'Are you human?')
+    ],
+    'default': {
+        'Yes': 'Are you human?'
+    }
 }
 
 urlpatterns += patterns('',
@@ -46,7 +50,7 @@ The base queryset to export the data
 export_data
 -----------
 
-A dictionary of 'path.to.property.or.callable': 'Column Title' to describe the
+A list of tuples of form ('path.to.property.or.callable', 'Column Title') to describe the
 data to be exported.
 
 filter_by 
@@ -82,3 +86,9 @@ require_permission
 
 This parameter is optional. If set, then a 
 ``request.user.has_perm(require_permission)`` is run, before serving anything.
+
+default
+-------
+
+This is an optional parameter. If you wish to give a default value for any
+column, then use this.

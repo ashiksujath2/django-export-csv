@@ -23,7 +23,8 @@ def export_csv(request, queryset, export_data, filter_by=None, file_name='export
     @param require_permission: only user's havig the required permission can 
         access this view
     @param default: a dictionary of form 'path.to.data': default_data. Used if
-        object does not have the data attr or function.
+        object does not have 'path.to.data' attr or function. So, we use it to
+        provide default.
         
     Example usage:
     'queryset': User.objects.all(),
@@ -33,9 +34,10 @@ def export_csv(request, queryset, export_data, filter_by=None, file_name='export
         ('username': 'User name'),
         ('get_full_name': 'Full name'),
         ('get_profile.some_profile_var': 'Some data'),
-        ]
+        ('Yes', 'Are you human?'),
+    ]
     'default': {
-        'username': 'No Username'
+        'Yes':'Are you human?'
     }
     '''
     if require_permission and not (request.user.is_authenticated() and 
