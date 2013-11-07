@@ -1,4 +1,4 @@
-import csv, codecs
+import csv, codecs, collections
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.views import redirect_to_login
@@ -8,12 +8,12 @@ except ImportError:
     from StringIO import StringIO
 
 def export_csv(request, queryset, export_data, filter_by=None, file_name='exported_data.csv',
-        object_id=None, not_available='n.a.', require_permission=None):
+        object_id=None, not_available='n.a.', require_permission=None, default=None):
     '''
     Export objects from a queryset
     
     @param queryset: the queryset containing a list of objects
-    @param export_data: a dictionary of the form 'path.to.data': 'Column Title'
+    @param export_data: a list of tuples of the form ('path.to.data', 'Column Title')
     @param filter_by: filter the queryset by this column__condition and object_id
     @param file_name: the file name offered in the browser or a callable
     @param object_id: if file_name is callable and object_id is given, then the 
@@ -22,16 +22,21 @@ def export_csv(request, queryset, export_data, filter_by=None, file_name='export
         is not available
     @param require_permission: only user's havig the required permission can 
         access this view
+    @param default: a dictionary of form 'path.to.data': default_data. Used if
+        object does not have the data attr or function.
         
     Example usage:
     'queryset': User.objects.all(),
     'filter_by': 'is_active',
     'object_id': 1,
-    'export_data':  {
-        'username': 'User name',
-        'get_full_name': 'Full name',
-        'get_profile.some_profile_var': 'Some data',
-        }
+    'export_data':  [
+        ('username': 'User name'),
+        ('get_full_name': 'Full name'),
+        ('get_profile.some_profile_var': 'Some data'),
+        ]
+    'default': {
+        'username': 'No Username'
+    }
     '''
     if require_permission and not (request.user.is_authenticated() and 
                        request.user.has_perm(require_permission)):
@@ -39,7 +44,8 @@ def export_csv(request, queryset, export_data, filter_by=None, file_name='export
     queryset = queryset._clone()
     if filter_by and object_id:
         queryset = queryset.filter(**{'%s' % filter_by: object_id})
-    
+    export_data = collections.OrderedDict(export_data)
+
     def get_attr(object, attrs=None):
         if attrs == None or attrs == []:
             return object
@@ -65,6 +71,9 @@ def export_csv(request, queryset, export_data, filter_by=None, file_name='export
             row = []
             for attr in export_data.keys():
                 obj = get_attr(item, attr.split('.'))
+                if obj == not_available:
+                    if default:
+                        obj = default.get(attr, not_available)
                 if callable(obj):
                     res = obj()
                 else:
