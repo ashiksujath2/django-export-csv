@@ -88,7 +88,6 @@ def export_csv(request, queryset, export_data, filter_by=None, file_name='export
             yield stream_csv(row)
     
     rsp = HttpResponse(streaming_response_generator(), 
-                        mimetype='text/csv', 
                         content_type='text/csv; charset=utf-8')
     filename = object_id and callable(file_name) and file_name(object_id) or file_name
     rsp['Content-Disposition'] = 'attachment; filename=%s' % filename.encode('utf-8')
