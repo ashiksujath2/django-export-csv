@@ -3,9 +3,9 @@ from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.views import redirect_to_login
 try:
-    from cStringIO import StringIO
+    from io import StringIO
 except ImportError:
-    from StringIO import StringIO
+    from io import StringIO
 
 def export_csv(request, queryset, export_data, filter_by=None, file_name='exported_data.csv',
         object_id=None, not_available='n.a.', require_permission=None, default=None):
@@ -67,11 +67,11 @@ def export_csv(request, queryset, export_data, filter_by=None, file_name='export
     
     def streaming_response_generator():
         yield codecs.BOM_UTF8
-        yield stream_csv(export_data.values())
+        yield stream_csv(list(export_data.values()))
         
         for item in queryset.iterator():
             row = []
-            for attr in export_data.keys():
+            for attr in list(export_data.keys()):
                 obj = get_attr(item, attr.split('.'))
                 if obj == not_available:
                     if default:
@@ -80,7 +80,7 @@ def export_csv(request, queryset, export_data, filter_by=None, file_name='export
                     res = obj()
                 else:
                     res = obj
-                if isinstance(res, unicode) is True:
+                if isinstance(res, str) is True:
                     res = res.encode('utf-8')
                 elif isinstance(res, str) is False:
                     res = str(res)

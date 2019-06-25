@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.contrib.auth.models import User, Permission
-from test_utils import RequestFactory
-from views import export_csv
+from .test_utils import RequestFactory
+from .views import export_csv
 
 class ExportCsvTest(TestCase):
     
